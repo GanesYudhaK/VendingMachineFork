@@ -1,8 +1,13 @@
-@model VendingMachineApp.Models.Product
+@model VendingMachineApp.ModelViewModel.ProductViewModels
+
+@{
+    ViewData["Title"] = "Edit Product";
+}
 
 <h1>Edit Produk</h1>
 
 <form asp-action="Edit">
+    <input type="hidden" asp-for="IdProduct" />
     <div class="form-group">
         <label asp-for="Name" class="control-label"></label>
         <input asp-for="Name" class="form-control" />
@@ -25,3 +30,7 @@
 </form>
 
 <a href="@Url.Action("Index", "Product")" class="btn btn-secondary">Kembali</a>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

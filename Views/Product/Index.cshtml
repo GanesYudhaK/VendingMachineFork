@@ -1,6 +1,26 @@
-@model IEnumerable<VendingMachineApp.Models.Product>
+@model VendingMachineApp.ModelViewModel.ProductViewModels
+
+@{
+    ViewData["Title"] = "Product List";
+}
+
 
 <h1>Daftar Produk</h1>
+
+<form method="get" asp-action="Index" class="form-inline">
+    <div class="form-group">
+        <label for="searchString">Cari Produk</label>
+        <div class="row mb-2">
+            <div class="col-5">
+                <input type="text" id="searchString" name="searchString" class="form-control" value="@Model.SearchString" />
+            </div>
+            <div class="col-3">
+                <button type="submit" class="btn btn-primary w-100">Cari</button>
+            </div>
+        </div>
+    </div>
+</form>
+
 
 <a href="@Url.Action("Create", "Product")" class="btn btn-primary">Tambah Produk</a>
 
@@ -15,7 +35,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var product in Model)
+        @foreach (var product in Model.Products)
         {
             <tr>
                 <td>@product.IdProduct</td>

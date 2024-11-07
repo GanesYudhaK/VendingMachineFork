@@ -1,0 +1,203 @@
+// ================================== AccountController
+
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using VendingMachineApp.Models;
+using VendingMachineApp.ModelViewModel;
+using System.Threading.Tasks;
+
+namespace VendingMachineApp.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
+
+        public AccountController(SignInManager<User> signInManager, UserManager<User> userManager)
+        {
+            _signInManager = signInManager;
+            _userManager = userManager;
+        }
+
+        // GET: Account/Login
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // POST: Account/Login
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        {
+            if (!ModelState.IsValid) return View("Index", model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Invalid login attempt. User not found.";
+                return View("Index", model);
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: false);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Login successful!";
+                return RedirectToAction("Index", "Product");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Invalid login attempt. Please check your credentials.";
+                return View("Index", model);
+            }
+        }
+
+        // POST: Account/Logout
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Account");
+        }
+
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        // POST: Account/Register
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = new User { UserName = model.Email, Email = model.Email };
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                TempData["SuccessMessage"] = "Registration successful! Welcome!";
+                return RedirectToAction("Index", "Account");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            TempData["ErrorMessage"] = "Registration failed." + string.Join(" ", result.Errors.Select(e => e.Description));
+            return View(model);
+        }
+    }
+}
+
+
+// ==================================================== UserController
+
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using VendingMachineApp.Models;
+using VendingMachineApp.ModelViewModel;
+using System.Threading.Tasks;
+using System.Linq;
+
+namespace VendingMachineApp.Controllers
+{
+    public class UserController : Controller
+    {
+        private readonly UserManager<User> _userManager;
+
+        public UserController(UserManager<User> userManager)
+        {
+            _userManager = userManager;
+        }
+
+        // GET: User/Index
+        public async Task<IActionResult> Index()
+        {
+            // Mengambil semua pengguna dari UserManager
+            var users = _userManager.Users.ToList();
+            
+            // Mapping data pengguna ke dalam UserListViewModel
+            var userList = users.Select(user => new UserListViewModel
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName
+            }).ToList();
+
+            return View(userList);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Index");
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "User deleted successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Error deleting user.";
+            }
+
+            return RedirectToAction("Index");
+        }
+    }
+}
+
+
+===================== Transaction.Create
+
+@model VendingMachineApp.Models.Transaction
+
+<h1>Tambah Transaksi</h1>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label asp-for="UserId" class="control-label"></label>
+        <select asp-for="UserId" class="form-control">
+            <option value="">-- Pilih User --</option>
+            @foreach (var user in ViewData["Users"] as List<VendingMachineApp.Models.User>)
+            {
+                <option value="@user.Id.ToString()">@user.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="IdProduct" class="control-label"></label>
+        <select asp-for="IdProduct" class="form-control">
+            <option value="">-- Pilih Produk --</option>
+            @foreach (var product in ViewData["Products"] as List<VendingMachineApp.Models.Product>)
+            {
+                <option value="@product.IdProduct">@product.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Amount" class="control-label"></label>
+        <input asp-for="Amount" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TransactionType" class="control-label"></label>
+        <select asp-for="TransactionType" class="form-control">
+            <option value="Pembelian">Pembelian</option>
+            <option value="Penambahan Saldo">Penambahan Saldo</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Simpan</button>
+</form>

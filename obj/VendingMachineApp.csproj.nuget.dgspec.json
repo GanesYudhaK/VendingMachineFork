@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ganz\\Desktop\\NET-PROJECT\\VendingMachineApp\\VendingMachineApp.csproj": {}
+    "C:\\Users\\m9nrr\\OneDrive\\Desktop\\PROJECT\\VendingMachineApp\\VendingMachineApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ganz\\Desktop\\NET-PROJECT\\VendingMachineApp\\VendingMachineApp.csproj": {
+    "C:\\Users\\m9nrr\\OneDrive\\Desktop\\PROJECT\\VendingMachineApp\\VendingMachineApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ganz\\Desktop\\NET-PROJECT\\VendingMachineApp\\VendingMachineApp.csproj",
+        "projectUniqueName": "C:\\Users\\m9nrr\\OneDrive\\Desktop\\PROJECT\\VendingMachineApp\\VendingMachineApp.csproj",
         "projectName": "VendingMachineApp",
-        "projectPath": "C:\\Users\\Ganz\\Desktop\\NET-PROJECT\\VendingMachineApp\\VendingMachineApp.csproj",
-        "packagesPath": "C:\\Users\\Ganz\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ganz\\Desktop\\NET-PROJECT\\VendingMachineApp\\obj\\",
+        "projectPath": "C:\\Users\\m9nrr\\OneDrive\\Desktop\\PROJECT\\VendingMachineApp\\VendingMachineApp.csproj",
+        "packagesPath": "C:\\Users\\m9nrr\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\m9nrr\\OneDrive\\Desktop\\PROJECT\\VendingMachineApp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ganz\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\m9nrr\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -43,6 +43,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.10, )"

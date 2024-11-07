@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VendingMachineApp.Data;
 using VendingMachineApp.Models;
+using VendingMachineApp.ModelViewModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,10 +18,31 @@ namespace VendingMachineApp.Controllers
         }
 
         // Menampilkan daftar produk
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var products = await _context.Products.ToListAsync();
-            return View(products);
+            var viewModel = new ProductViewModels {
+                SearchString = searchString
+            };
+
+            var products = from p in _context.Products
+                           select p;
+
+            if (!string.IsNullOrEmpty(searchString)) {
+                products = products.Where(p => p.Name.Contains(searchString));
+            }
+
+            //menggunakan ViewModel
+            viewModel.Products = await products
+                .Select(p => new ProductViewModels
+                {
+                    IdProduct = p.IdProduct,
+                    Name = p.Name,
+                    Price = p.Price,
+                    Quantity = p.Quantity
+                })
+                .ToListAsync();
+            ViewData["SearchString"] = searchString;
+            return View(viewModel);
         }
 
         // Menampilkan form untuk membuat produk baru
@@ -30,103 +52,103 @@ namespace VendingMachineApp.Controllers
         }
 
         // Menangani POST untuk membuat produk baru
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product product)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ProductViewModels productViewModel)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) //validasi ViewModel
             {
+                var product = new Product
+                {
+                    Name = productViewModel.Name,
+                    Price = productViewModel.Price,
+                    Quantity = productViewModel.Quantity
+                };
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
+                
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(productViewModel);
         }
 
         // Menampilkan form untuk mengedit produk
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            if (product == null) return NotFound();
+
+            var productViewModel = new ProductViewModels
             {
-                return NotFound();
-            }
-            return View(product);
+                IdProduct = product.IdProduct,
+                Name = product.Name,
+                Price = product.Price,
+                Quantity = product.Quantity
+            };
+
+            return View(productViewModel);
         }
 
         // Menangani POST untuk mengedit produk
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product product)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, ProductViewModels productViewModel)
         {
-            if (id != product.IdProduct)
-            {
-                return NotFound();
-            }
+            if (id != productViewModel.IdProduct) return NotFound();
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
+            if (ModelState.IsValid) {
+                try {
+                    var product = await _context.Products.FindAsync(id);
+                    if (product == null) return NotFound();
+
+                    product.Name = productViewModel.Name;
+                    product.Price = productViewModel.Price;
+                    product.Quantity = productViewModel.Quantity;
+
                     _context.Update(product);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProductExists(product.IdProduct))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                catch (DbUpdateConcurrencyException) {
+                    if (!ProductExists(productViewModel.IdProduct)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(productViewModel);
         }
 
-        // GET: Product/Delete/{id}
+        // Mengambil id produk yg akan didelete
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var product = await _context.Products
                 .FirstOrDefaultAsync(m => m.IdProduct == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
+            if (product == null) return NotFound();
 
-            return View(product); // Pastikan produk dikirim ke view Delete
+            var viewModel = new ProductViewModels
+            {
+                IdProduct = product.IdProduct,
+                Name = product.Name,
+                Price = product.Price,
+                Quantity = product.Quantity
+            };
+
+            return View(viewModel);
         }
 
-        // POST: Product/DeleteConfirmed
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            Console.WriteLine($"ID Produk yang akan dihapus: {id}");
             var product = await _context.Products.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound();
+            if (product != null) {
+                _context.Products.Remove(product);
+                await _context.SaveChangesAsync();
             }
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
-            
+
             return RedirectToAction(nameof(Index));
         }
-
+        
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.IdProduct == id);
