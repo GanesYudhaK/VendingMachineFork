@@ -201,3 +201,6 @@ namespace VendingMachineApp.Controllers
 
     <button type="submit" class="btn btn-primary">Simpan</button>
 </form>
+
+
+XpageList

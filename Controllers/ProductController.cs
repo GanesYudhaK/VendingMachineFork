@@ -5,9 +5,11 @@ using VendingMachineApp.Models;
 using VendingMachineApp.ModelViewModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace VendingMachineApp.Controllers
 {
+    [Authorize]
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -18,6 +20,7 @@ namespace VendingMachineApp.Controllers
         }
 
         // Menampilkan daftar produk
+        
         public async Task<IActionResult> Index(string searchString)
         {
             var viewModel = new ProductViewModels {
@@ -25,11 +28,14 @@ namespace VendingMachineApp.Controllers
             };
 
             var products = from p in _context.Products
+                            where p.Price > 0
                            select p;
 
             if (!string.IsNullOrEmpty(searchString)) {
                 products = products.Where(p => p.Name.Contains(searchString));
             }
+
+            viewModel.FullName = _context.Accounts.Where(u => u.UserName == User.Identity.Name).Select(i => i.FullName).Single();
 
             //menggunakan ViewModel
             viewModel.Products = await products
@@ -38,7 +44,7 @@ namespace VendingMachineApp.Controllers
                     IdProduct = p.IdProduct,
                     Name = p.Name,
                     Price = p.Price,
-                    Quantity = p.Quantity
+                    // Quantity = p.Quantity
                 })
                 .ToListAsync();
             ViewData["SearchString"] = searchString;

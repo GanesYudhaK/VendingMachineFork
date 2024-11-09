@@ -8,5 +8,6 @@ public class ProductViewModels
     public int Quantity { get; set; }
 
     public string? SearchString { get; set; }
+    public string? FullName { get; set; }
     public List<ProductViewModels> Products { get; set; } = new List<ProductViewModels>();
 }
